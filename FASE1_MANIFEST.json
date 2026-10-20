@@ -1,5 +1,7 @@
 {
   "project": "PAPEL",
+  "archived": true,
+  "notice": "Historical plan only; not an inventory of the current checkout. See README.md for the implementation that exists today.",
   "phase": 1,
   "status": "COMPLETE",
   "version": "0.1.0-beta",

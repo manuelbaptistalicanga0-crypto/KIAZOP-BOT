@@ -1,6 +1,8 @@
 # 📦 DELIVERY CHECKLIST — FASE 1
 
-## Status: ✅ PRONTO PARA PRODUÇÃO
+> **Arquivo histórico, não é uma declaração do estado atual.** O código disponível hoje é a demo mínima descrita no [README](README.md). PostgreSQL, RLS, Redis, IA, painel e as demais funcionalidades listadas abaixo não estão implementadas neste checkout.
+
+## Status histórico: ✅ PRONTO PARA PRODUÇÃO
 
 ---
 

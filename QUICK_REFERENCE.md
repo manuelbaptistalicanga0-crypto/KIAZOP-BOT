@@ -1,5 +1,7 @@
 # 🚀 QUICK REFERENCE — PAPEL Cheat Sheet
 
+> **Referência histórica desatualizada.** Este guia menciona componentes que não existem no checkout atual. Segue o [README](README.md) para instalar e testar a demo real.
+
 ## Setup (Copy-Paste Ready)
 
 ```bash

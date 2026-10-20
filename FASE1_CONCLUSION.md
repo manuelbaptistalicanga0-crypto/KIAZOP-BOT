@@ -1,6 +1,8 @@
 # FASE 1 — CONCLUSÃO E VALIDAÇÃO ✅
 
-## Status: COMPLETO E VALIDADO
+> **Documento histórico / plano, não estado atual do código.** A implementação deste repositório é a demo descrita no [README](README.md); as funcionalidades detalhadas abaixo não existem neste checkout.
+
+## Status histórico: COMPLETO E VALIDADO
 
 **Data:** 2025-01-15  
 **Duração:** 1 dia de execução  

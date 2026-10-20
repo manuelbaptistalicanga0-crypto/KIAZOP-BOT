@@ -1,139 +1,78 @@
-# PAPEL — Plataforma de Bots de Atendimento Multi-Tenant com IA
+# KIAZOP BOT
 
-**PAPEL** é uma plataforma SaaS para automatizar atendimento em WhatsApp e Instagram DM usando IA conversacional. Construída para PMEs (clínicas, salões, imobiliárias, academias, e-commerces).
+Uma base de demonstração para testar o recebimento e a normalização de webhooks do WhatsApp. O projeto inclui uma página de teste interativa, uma API de health check, verificação opcional de assinatura Meta e testes automatizados. **Ainda não é um produto SaaS completo**: funcionalidades mencionadas em documentos antigos (painel, multi-tenancy/RLS, IA, agendamento, Instagram e base de dados) não estão implementadas nesta versão do repositório.
 
-## Características Principais
+[![CI](https://github.com/manuelbaptistalicanga0-crypto/KIAZOP-BOT/actions/workflows/ci.yml/badge.svg)](https://github.com/manuelbaptistalicanga0-crypto/KIAZOP-BOT/actions/workflows/ci.yml)
 
-- ✅ **Multi-tenant isolado**: Row Level Security (RLS) no PostgreSQL
-- ✅ **IA sem guiões rígidos**: Comportamento emerge de base de factos viva + histórico real
-- ✅ **Janela de 24h com templates**: Compliance com política Meta
-- ✅ **Agendamento à prova de erro**: Locks distribuídos, confirmações explícitas
-- ✅ **RAG integrado**: Ingestão de conhecimento, busca híbrida
-- ✅ **Transferência para humano**: Detecção automática, inbox unificada
-- ✅ **Compliance**: LGPD/GDPR, consentimento, minimização de dados, auditoria
+## Experimentar a demo no computador
 
-## Quick Start
-
-### Pré-requisitos
-- Docker e Docker Compose
-- Node.js 20+
-- PostgreSQL 14+ (ou usar docker-compose)
-
-### Instalação Local
+Requisitos: Node.js 20 ou superior e npm. Não é preciso configurar PostgreSQL, Redis, conta Meta ou chave de IA para testar a demo.
 
 ```bash
-# 1. Clone repositório
-git clone https://github.com/seu-usuario/papel.git
-cd papel
-
-# 2. Setup ambiente
-cp .env.example .env
-
-# 3. Iniciar BD + Redis (docker-compose)
-docker-compose up -d
-
-# 4. Instalar dependências
-npm install
-
-# 5. Aplicar schema ao DB (Drizzle)
-npx drizzle-kit push
-
-# 6. Aplicar RLS policies
-psql postgresql://postgres:postgres@127.0.0.1:5432/app_db < infra/scripts/init-db.sql
-
-# 7. Rodar dev server
+git clone https://github.com/manuelbaptistalicanga0-crypto/KIAZOP-BOT.git
+cd KIAZOP-BOT
+npm ci
 npm run dev
-
-# Acesso:
-# API: http://localhost:3000
-# Admin: http://localhost:3001 (próximas fases)
 ```
 
-## Arquitetura
+Abre [http://localhost:3000](http://localhost:3000), altera o JSON se quiseres e clica em **Executar teste**. O exemplo mostra como uma mensagem WhatsApp é convertida num formato normalizado. O endpoint `GET /api/health` confirma que a aplicação está ativa.
 
-Ver `/docs/ARCHITECTURE.md` para detalhes completos.
+## Testar no GitHub
 
-```
-apps/
-  api/        — Webhooks, REST, workers
-  admin/      — Painel Next.js
+O workflow **CI** em [Actions](https://github.com/manuelbaptistalicanga0-crypto/KIAZOP-BOT/actions) executa lint, verificação TypeScript, testes unitários e build em cada push e pull request. Para o executar manualmente: abre **Actions → CI → Run workflow**. O workflow valida o código; não publica uma demo pública.
 
-packages/
-  core/       — Motor de conversação (máquina de estados, LLM + tools)
-  channels/   — Normalização WhatsApp/Instagram
-  llm/        — Providers (Claude, fallbacks)
-  rag/        — Ingestão, embeddings, busca
-  scheduling/ — Agendamento, slots, reminders
-  handoff/    — Transferência para humano
-  compliance/ — Consentimento, audit, PII
-  evals/      — Testes de conversa
-```
-
-## Roadmap
-
-| Fase | Status | Descrição |
-|------|--------|-----------|
-| 1 | ✅ **EM PROGRESSO** | Fundação: BD, webhook, normalização, 24h window |
-| 2 | ⏳ Próxima | Motor de conversação: máquina de estados, LLM + tools |
-| 3 | ⏳ | Agendamento à prova de erro |
-| 4 | ⏳ | RAG e conhecimento |
-| 5 | ⏳ | Funil, humano e painel |
-| 6 | ⏳ | Compliance e segurança |
-| 7 | ⏳ | Qualidade (evals) |
-| 8 | ⏳ | Negócio (pricing, onboarding) |
-| 9 | ⏳ | Aprendizagem contínua |
-
-## Documentação
-
-- 📖 [`/docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Arquitetura completa
-- 📋 [`/docs/DECISIONS.md`](docs/DECISIONS.md) — Decisões de design
-- 🔧 [`/docs/RUNBOOK.md`](docs/RUNBOOK.md) — Guia de incidentes (em breve)
-- 📊 [`/docs/PRICING.md`](docs/PRICING.md) — Modelos de preço (em breve)
-- ✅ [`/docs/ONBOARDING-CLIENTE.md`](docs/ONBOARDING-CLIENTE.md) — Onboarding (em breve)
-
-## Testes
+Também podes executar os mesmos controlos localmente:
 
 ```bash
-# Rodar testes (Jest)
+npm run lint
+npm run typecheck
 npm test
-
-# Com cobertura
-npm test -- --coverage
+npm run build
 ```
 
-## Desenvolvendo
+## API
 
-### Adicionar novo endpoint
+### Health check
 
-1. Criar arquivo em `src/app/api/[path]/route.ts`
-2. Implementar GET/POST/PUT/DELETE
-3. Adicionar middleware de autenticação/tenant
-4. Testar
+```bash
+curl http://localhost:3000/api/health
+```
 
-### Adicionar nova tool para LLM
+### Normalização de webhook
 
-1. Criar arquivo em `packages/llm/src/tools/[name].ts`
-2. Implementar interface `Tool`
-3. Registar em `packages/llm/src/tools/index.ts`
-4. Testar
+Envia um payload Cloud API de WhatsApp para `POST /api/webhooks/whatsapp` com `Content-Type: application/json`. Em desenvolvimento, a assinatura Meta é opcional para facilitar o teste da página local.
 
-## Segurança
+```bash
+curl -X POST http://localhost:3000/api/webhooks/whatsapp \
+  -H 'Content-Type: application/json' \
+  --data '{"entry":[{"changes":[{"value":{"messages":[{"id":"wamid.demo","from":"244923456789","timestamp":"1730000000","type":"text","text":{"body":"Olá"}}]}}]}]}'
+```
 
-- Todos os secrets em `.env` (não committar)
-- RLS ativada em todas as tabelas
-- Validação com Zod
-- Logs estruturados (PII mascarado)
-- Encriptação de tokens sensíveis
+A resposta contém `received`, `count` e `messages` normalizadas. Notificações de estado (sem mensagens recebidas) devolvem uma lista vazia.
 
-## Contribuir
+### Verificação do endpoint Meta
 
-Este é um projeto MVP em desenvolvimento ativo. PRs bem-vindas!
+Configura `META_WEBHOOK_VERIFY_TOKEN` no ambiente do servidor e usa o mesmo token no pedido de verificação da Meta:
 
-## Licença
+```bash
+META_WEBHOOK_VERIFY_TOKEN=um-token-local npm run dev
+# GET /api/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=um-token-local&hub.challenge=abc
+```
 
-Proprietary (em breve: escolher licença apropriada)
+Para aceitar webhooks assinados, configura também `META_APP_SECRET`. Se esse segredo estiver definido, a API valida `X-Hub-Signature-256`; em produção (`NODE_ENV=production`) a API recusa receber webhooks enquanto o segredo não estiver configurado. **Não publiques segredos nem uses tokens de demonstração em produção.**
 
-## Contacto
+## Comandos
 
-📧 team@papel.ai
-🌐 https://papel.ai
+| Comando | Função |
+| --- | --- |
+| `npm run dev` | Inicia a aplicação em desenvolvimento |
+| `npm run build` | Gera a build de produção |
+| `npm start` | Serve a build de produção |
+| `npm run lint` | Executa ESLint |
+| `npm run typecheck` | Verifica tipos TypeScript |
+| `npm test` | Executa testes unitários com Jest |
+| `npm run test:coverage` | Executa testes com cobertura |
+
+## Estado e próximos passos
+
+Esta entrega é uma base mínima executável para experimentar o tratamento de webhooks. Persistência PostgreSQL/Redis, isolamento de tenants, autenticação, respostas automáticas com IA e publicação pública ainda precisam de implementação antes de qualquer uso real. Consulta [GETTING_STARTED.md](GETTING_STARTED.md) para configuração e desenvolvimento.
