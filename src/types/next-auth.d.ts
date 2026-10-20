@@ -6,7 +6,7 @@ declare module "next-auth" {
     user: { id: string; tenantId: string; name: string; email: string };
   }
   interface User {
-    tenantId: string;
+    tenantId?: string;
   }
 }
 

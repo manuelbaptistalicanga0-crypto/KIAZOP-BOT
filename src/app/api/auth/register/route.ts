@@ -12,6 +12,9 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return Response.json({ error: "O serviço ainda está a ser configurado: falta ligar a base de dados. Tenta mais tarde ou contacta o administrador." }, { status: 503 });
+  }
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Confere os campos; a palavra-passe deve ter pelo menos 10 caracteres." }, { status: 400 });
   try {

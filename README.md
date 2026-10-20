@@ -67,12 +67,18 @@ O GitHub Actions executa estes controlos em cada push/PR e pode ser iniciado em 
 | `NEXTAUTH_SECRET` | Sim | Assinatura das sessões; aleatório e exclusivo de produção |
 | `NEXTAUTH_URL` | Produção | URL canónica da aplicação, por exemplo `https://app.ao` |
 | `APP_URL` | Recomendado | URL pública usada para construir a callback do webhook |
+| `GOOGLE_CLIENT_ID` | Opcional | ID do cliente OAuth Web no Google Cloud; activa o botão «Continuar com Google» |
+| `GOOGLE_CLIENT_SECRET` | Opcional | Segredo do cliente OAuth Web; manter apenas nas variáveis da Vercel |
 | `ENCRYPTION_KEY` | Sim | Base64 de exactamente 32 bytes, cifra tokens Meta por tenant |
 | `META_APP_SECRET` | Sim em produção | Verifica `X-Hub-Signature-256` nos webhooks |
 | `META_GRAPH_API_VERSION` | Recomendado | Versão suportada pela tua app Meta, por exemplo `v23.0` |
 | `META_TASK_TEMPLATE_NAME` | Para mensagens iniciadas pela empresa | Nome exacto do template aprovado |
 | `META_TEMPLATE_LANGUAGE` | Para mensagens iniciadas pela empresa | Código de idioma do template, por exemplo `pt_PT` |
 | `CRON_SECRET` | Para cron | Segredo longo usado no header Bearer dos endpoints `/api/cron/*` |
+
+Para activar o Google, cria um OAuth Client ID do tipo **Web application** no Google Cloud Console, configura o ecrã de consentimento e adiciona como redirect URI autorizado `https://TEU-DOMINIO/api/auth/callback/google` (em desenvolvimento: `http://localhost:3000/api/auth/callback/google`). Guarda `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` nas variáveis de ambiente Preview/Production da Vercel. A primeira entrada Google com email verificado cria a conta e um espaço inicial da empresa; contas existentes com o mesmo email verificado são reconhecidas. O botão mostra uma indicação quando as credenciais Google ainda não estão configuradas.
+
+Sem `DATABASE_URL`, os formulários de acesso ficam desactivados e explicam que a configuração da base de dados está incompleta. O deployment não deve ser usado para registar clientes até configurar uma base PostgreSQL real.
 
 Gera segredos fortes localmente, sem os partilhar nem os commitar:
 
