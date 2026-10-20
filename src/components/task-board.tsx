@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Check, Circle, Clock3, LoaderCircle } from "lucide-react";
 
-type Task = { id: string; title: string; dueAt: Date | string; status: string; employee: { id: string; name: string } };
+type Task = { id: string; title: string; dueAt: Date | string; status: string; employee: { name: string } };
 const statusText: Record<string, string> = { PENDING: "Por começar", IN_PROGRESS: "Em curso", AWAITING_DELAY_REASON: "A aguardar motivo", DELAYED: "Atrasada" };
 const formatDeadline = (date: Date | string) => new Intl.DateTimeFormat("pt-AO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Luanda" }).format(new Date(date));
 
