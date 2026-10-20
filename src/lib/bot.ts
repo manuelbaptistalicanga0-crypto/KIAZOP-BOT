@@ -81,7 +81,7 @@ export async function processWebhookEvent(eventId: string): Promise<void> {
       await tx.webhookEvent.update({ where: { id: event.id }, data: { status: "PROCESSED", processedAt: new Date(), processingAt: null } });
     });
   } catch (error) {
-    const attempts = event.attempts + 1;
+    const attempts = event.attempts;
     await prisma.webhookEvent.update({
       where: { id: event.id },
       data: { status: attempts >= 5 ? "FAILED" : "PENDING", processingAt: null, lastError: error instanceof Error ? error.message.slice(0, 1000) : "Erro desconhecido" },

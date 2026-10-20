@@ -9,7 +9,7 @@ SaaS mobile-first para empresas em Angola organizarem tarefas, atribuírem traba
 - **Contas e empresas separadas:** registo cria tenant; NextAuth emite sessão assinada e `getTenantId()` obtém o tenant da sessão — nunca do JSON enviado pelo browser.
 - **Tarefas e equipa:** atribuição por pessoa, prazos, conclusão manual ou por WhatsApp.
 - **Bot WhatsApp:** `FEITO` ou `1` conclui a próxima tarefa aberta; `ATRASO` pergunta o motivo e a próxima resposta fica registada. O número do remetente tem de estar registado na equipa.
-- **Onboarding em 3 passos** em `/setup`: credenciais Meta, URL e token de webhook e envio de mensagem de teste.
+- **Onboarding em 3 passos** em `/setup`: credenciais Meta, URL e token de webhook e envio de mensagem de teste. A configuração por tenant é guardada na tabela PostgreSQL `whatsapp_config`.
 - **Planos e quotas:** Free (5 pessoas, 100 tarefas activas, 500 mensagens/mês), Pro (50, 2.000, 20.000) e Enterprise (sem limite fixo). A cobrança de subscrições/pagamentos ainda não está ligada.
 - **Performance:** páginas do produto são React Server Components; os componentes client são apenas formulários/feedback interactivo. Dashboard faz queries `select`ivas, cache por tenant durante 30 s e índices para tarefas, prazos e mensagens.
 - **Segurança:** token de acesso Meta cifrado com AES-256-GCM, verify token guardado como hash, assinatura HMAC validada em produção, limites de tenant nas queries e chave estrangeira composta tarefa–funcionário.
@@ -63,6 +63,7 @@ O GitHub Actions executa estes controlos em cada push/PR e pode ser iniciado em 
 | --- | --- | --- |
 | `DATABASE_URL` | Sim | URL PostgreSQL pooled, runtime da aplicação |
 | `DIRECT_URL` | Sim | URL PostgreSQL directa, Prisma Migrate e geração do client |
+| `DATABASE_POOL_MAX` | Não | Máximo de conexões `pg` por worker serverless (predefinição 5) |
 | `NEXTAUTH_SECRET` | Sim | Assinatura das sessões; aleatório e exclusivo de produção |
 | `NEXTAUTH_URL` | Produção | URL canónica da aplicação, por exemplo `https://app.ao` |
 | `APP_URL` | Recomendado | URL pública usada para construir a callback do webhook |

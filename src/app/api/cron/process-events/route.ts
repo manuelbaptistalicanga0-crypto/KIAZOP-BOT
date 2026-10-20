@@ -11,14 +11,16 @@ export async function GET(request: Request) {
   // Recupera leases de funções serverless que foram terminadas no meio do trabalho.
   await prisma.webhookEvent.updateMany({
     where: { status: "PROCESSING", processingAt: { lt: new Date(Date.now() - 2 * 60_000) } },
-    data: { status: "PENDING", processingAt: null, lastError: "Lease de processamento expirou; evento reencaminhado." },
+    data: { status: "FAILED", processingAt: null, lastError: "Lease de processamento expirou; evento reencaminhado." },
   });
   const events = await prisma.webhookEvent.findMany({
     where: { status: { in: ["PENDING", "FAILED"] }, attempts: { lt: 5 } },
     select: { id: true },
     orderBy: { createdAt: "asc" },
-    take: 50,
+    take: 20,
   });
-  await Promise.all(events.map((event: { id: string }) => processWebhookEvent(event.id)));
+  for (let offset = 0; offset < events.length; offset += 5) {
+    await Promise.all(events.slice(offset, offset + 5).map((event: { id: string }) => processWebhookEvent(event.id)));
+  }
   return Response.json({ accepted: true, processed: events.length });
 }

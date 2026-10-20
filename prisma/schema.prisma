@@ -101,18 +101,19 @@ model Task {
 }
 
 model WhatsAppConfig {
-  id                    String   @id @default(cuid())
-  tenantId              String   @unique
-  phoneNumberId         String   @unique
-  wabaId                String
-  encryptedAccessToken  String   @db.Text
-  verifyTokenHash       String
-  enabled               Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                   String   @id(map: "whatsapp_config_pkey") @default(cuid())
+  tenantId             String   @unique(map: "whatsapp_config_tenant_id_key") @map("tenant_id")
+  phoneNumberId        String   @unique(map: "whatsapp_config_phone_number_id_key") @map("phone_number_id")
+  wabaId               String   @map("waba_id")
+  encryptedAccessToken String   @db.Text @map("encrypted_access_token")
+  verifyTokenHash      String   @map("verify_token_hash")
+  enabled              Boolean  @default(true)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade, map: "whatsapp_config_tenant_id_fkey")
 
-  @@index([verifyTokenHash])
+  @@index([verifyTokenHash], map: "whatsapp_config_verify_token_hash_idx")
+  @@map("whatsapp_config")
 }
 
 model WebhookEvent {

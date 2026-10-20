@@ -1,6 +1,7 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { PLAN_LIMITS, type PlanTier } from "@/lib/plans";
+import { PLAN_LIMITS, PlanLimitError, type PlanTier } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
 import { apiError, getTenantId } from "@/lib/tenant";
 
@@ -32,21 +33,28 @@ export async function POST(request: Request) {
     const parsed = createSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return Response.json({ error: "Preenche o título, a pessoa responsável e o prazo." }, { status: 400 });
     const prisma = getPrisma();
-    const [tenant, employee, activeTasks] = await Promise.all([
-      prisma.tenant.findUnique({ where: { id: tenantId }, select: { plan: true } }),
-      prisma.employee.findFirst({ where: { id: parsed.data.employeeId, tenantId }, select: { id: true } }),
-      prisma.task.count({ where: { tenantId, status: { not: "COMPLETED" } } }),
-    ]);
-    if (!tenant) return Response.json({ error: "Empresa não encontrada." }, { status: 404 });
+    const employee = await prisma.employee.findFirst({ where: { id: parsed.data.employeeId, tenantId }, select: { id: true } });
     if (!employee) return Response.json({ error: "Escolhe um membro da tua equipa." }, { status: 400 });
-    if (activeTasks >= PLAN_LIMITS[tenant.plan as PlanTier].activeTasks) return Response.json({ error: "Atingiste o limite de tarefas activas do teu plano." }, { status: 403 });
-    const task = await prisma.task.create({
-      data: { tenantId, employeeId: employee.id, title: parsed.data.title, dueAt: new Date(parsed.data.dueAt), description: parsed.data.description },
-      select: { id: true, title: true, dueAt: true, status: true },
+    const task = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // Serializa as criações desta empresa para não ultrapassar a quota em pedidos concorrentes.
+      await tx.$queryRawUnsafe('SELECT "id" FROM "Tenant" WHERE "id" = $1 FOR UPDATE', tenantId);
+      const tenant = await tx.tenant.findUnique({ where: { id: tenantId }, select: { plan: true } });
+      if (!tenant) return null;
+      const activeTasks = await tx.task.count({ where: { tenantId, status: { not: "COMPLETED" } } });
+      if (activeTasks >= PLAN_LIMITS[tenant.plan as PlanTier].activeTasks) throw new PlanLimitError("Atingiste o limite de tarefas activas do teu plano.");
+      return tx.task.create({
+        data: { tenantId, employeeId: employee.id, title: parsed.data.title, dueAt: new Date(parsed.data.dueAt), description: parsed.data.description },
+        select: { id: true, title: true, dueAt: true, status: true },
+      });
     });
+    if (!task) return Response.json({ error: "Empresa não encontrada." }, { status: 404 });
     revalidatePath("/dashboard");
+    revalidateTag(`dashboard-${tenantId}`, "max");
     return Response.json({ task }, { status: 201 });
-  } catch (error) { return apiError(error); }
+  } catch (error) {
+    if (error instanceof PlanLimitError) return Response.json({ error: error.message }, { status: 403 });
+    return apiError(error);
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -60,6 +68,7 @@ export async function PATCH(request: Request) {
     });
     if (!result.count) return Response.json({ error: "Tarefa não encontrada." }, { status: 404 });
     revalidatePath("/dashboard");
+    revalidateTag(`dashboard-${tenantId}`, "max");
     return Response.json({ updated: true });
   } catch (error) { return apiError(error); }
 }

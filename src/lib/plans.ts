@@ -7,7 +7,11 @@ export const PLAN_LIMITS: Record<PlanTier, { employees: number; activeTasks: num
 };
 
 export const PLAN_LABELS: Record<PlanTier, string> = {
-  FREE: "Gratuito",
+  FREE: "Free",
   PRO: "Pro",
   ENTERPRISE: "Enterprise",
 };
+
+export class PlanLimitError extends Error {
+  constructor(message: string) { super(message); this.name = "PlanLimitError"; }
+}

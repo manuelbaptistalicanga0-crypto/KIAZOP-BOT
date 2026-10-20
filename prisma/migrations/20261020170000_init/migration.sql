@@ -44,17 +44,17 @@ CREATE TABLE "Task" (
   "updatedAt" TIMESTAMP(3) NOT NULL,
   CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
 );
-CREATE TABLE "WhatsAppConfig" (
+CREATE TABLE "whatsapp_config" (
   "id" TEXT NOT NULL,
-  "tenantId" TEXT NOT NULL,
-  "phoneNumberId" TEXT NOT NULL,
-  "wabaId" TEXT NOT NULL,
-  "encryptedAccessToken" TEXT NOT NULL,
-  "verifyTokenHash" TEXT NOT NULL,
+  "tenant_id" TEXT NOT NULL,
+  "phone_number_id" TEXT NOT NULL,
+  "waba_id" TEXT NOT NULL,
+  "encrypted_access_token" TEXT NOT NULL,
+  "verify_token_hash" TEXT NOT NULL,
   "enabled" BOOLEAN NOT NULL DEFAULT true,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
-  CONSTRAINT "WhatsAppConfig_pkey" PRIMARY KEY ("id")
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP(3) NOT NULL,
+  CONSTRAINT "whatsapp_config_pkey" PRIMARY KEY ("id")
 );
 CREATE TABLE "WebhookEvent" (
   "id" TEXT NOT NULL,
@@ -89,9 +89,9 @@ CREATE INDEX "Task_tenantId_dueAt_status_idx" ON "Task"("tenantId", "dueAt", "st
 CREATE INDEX "Task_tenantId_status_dueAt_idx" ON "Task"("tenantId", "status", "dueAt");
 CREATE INDEX "Task_tenantId_employeeId_status_dueAt_idx" ON "Task"("tenantId", "employeeId", "status", "dueAt");
 CREATE INDEX "Task_tenantId_reminderSentAt_dueAt_idx" ON "Task"("tenantId", "reminderSentAt", "dueAt");
-CREATE UNIQUE INDEX "WhatsAppConfig_tenantId_key" ON "WhatsAppConfig"("tenantId");
-CREATE UNIQUE INDEX "WhatsAppConfig_phoneNumberId_key" ON "WhatsAppConfig"("phoneNumberId");
-CREATE INDEX "WhatsAppConfig_verifyTokenHash_idx" ON "WhatsAppConfig"("verifyTokenHash");
+CREATE UNIQUE INDEX "whatsapp_config_tenant_id_key" ON "whatsapp_config"("tenant_id");
+CREATE UNIQUE INDEX "whatsapp_config_phone_number_id_key" ON "whatsapp_config"("phone_number_id");
+CREATE INDEX "whatsapp_config_verify_token_hash_idx" ON "whatsapp_config"("verify_token_hash");
 CREATE UNIQUE INDEX "WebhookEvent_tenantId_providerEventId_key" ON "WebhookEvent"("tenantId", "providerEventId");
 CREATE INDEX "WebhookEvent_tenantId_status_createdAt_idx" ON "WebhookEvent"("tenantId", "status", "createdAt");
 CREATE INDEX "MessageLog_tenantId_createdAt_status_idx" ON "MessageLog"("tenantId", "createdAt", "status");
@@ -100,6 +100,6 @@ ALTER TABLE "User" ADD CONSTRAINT "User_tenantId_fkey" FOREIGN KEY ("tenantId") 
 ALTER TABLE "Employee" ADD CONSTRAINT "Employee_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Task" ADD CONSTRAINT "Task_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Task" ADD CONSTRAINT "Task_employeeId_tenantId_fkey" FOREIGN KEY ("employeeId", "tenantId") REFERENCES "Employee"("id", "tenantId") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "WhatsAppConfig" ADD CONSTRAINT "WhatsAppConfig_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_config" ADD CONSTRAINT "whatsapp_config_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "WebhookEvent" ADD CONSTRAINT "WebhookEvent_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "MessageLog" ADD CONSTRAINT "MessageLog_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;

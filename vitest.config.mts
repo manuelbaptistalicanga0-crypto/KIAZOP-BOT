@@ -11,6 +11,7 @@ export default defineConfig({
     coverage: {
       include: ["src/lib/{bot,crypto,plans,webhook}.ts", "src/app/api/webhooks/whatsapp/route.ts", "src/app/api/health/route.ts"],
       reporter: ["text", "html"],
+      thresholds: { statements: 75, branches: 70, functions: 85, lines: 80 },
     },
   },
 });
