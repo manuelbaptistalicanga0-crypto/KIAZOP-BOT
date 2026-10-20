@@ -63,6 +63,7 @@ CREATE TABLE "WebhookEvent" (
   "payload" JSONB NOT NULL,
   "status" "WebhookEventStatus" NOT NULL DEFAULT 'PENDING',
   "attempts" INTEGER NOT NULL DEFAULT 0,
+  "processingAt" TIMESTAMP(3),
   "lastError" TEXT,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "processedAt" TIMESTAMP(3),

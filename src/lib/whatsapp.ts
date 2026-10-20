@@ -25,12 +25,18 @@ async function send(prisma: PrismaClient, config: Config, recipient: string, mes
 
   const token = decryptSecret(config.encryptedAccessToken);
   const version = process.env.META_GRAPH_API_VERSION || "v23.0";
-  const response = await fetch(`https://graph.facebook.com/${version}/${config.phoneNumberId}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: recipient, ...message }),
-    signal: AbortSignal.timeout(10_000),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`https://graph.facebook.com/${version}/${config.phoneNumberId}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: recipient, ...message }),
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    await prisma.messageLog.create({ data: { tenantId: config.tenantId, direction: "OUTBOUND", status: "FAILED", to: recipient, kind: message.type } });
+    throw new WhatsAppSendError("Não foi possível ligar à Meta. Confirma a ligação e tenta novamente.");
+  }
   const body = await response.json().catch(() => ({})) as { error?: { message?: string } };
   await prisma.messageLog.create({
     data: { tenantId: config.tenantId, direction: "OUTBOUND", status: response.ok ? "SENT" : "FAILED", to: recipient, kind: message.type },

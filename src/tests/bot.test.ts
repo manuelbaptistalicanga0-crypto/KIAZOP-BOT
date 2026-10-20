@@ -24,11 +24,16 @@ beforeEach(() => {
   mocks.taskFind.mockResolvedValue(task);
   mocks.taskUpdateMany.mockResolvedValue({ count: 1 });
   mocks.sendText.mockResolvedValue(undefined);
-  mocks.getPrisma.mockReturnValue({
-    webhookEvent: { updateMany: mocks.eventClaim, findUnique: mocks.eventFind, update: mocks.eventUpdate },
+  const transaction = {
+    webhookEvent: { update: mocks.eventUpdate },
     whatsAppConfig: { findUnique: mocks.configFind },
     employee: { findFirst: mocks.employeeFind },
     task: { findFirst: mocks.taskFind, updateMany: mocks.taskUpdateMany },
+  };
+  mocks.getPrisma.mockReturnValue({
+    ...transaction,
+    webhookEvent: { ...transaction.webhookEvent, updateMany: mocks.eventClaim, findUnique: mocks.eventFind },
+    $transaction: (callback: (tx: typeof transaction) => Promise<unknown>) => callback(transaction),
   });
 });
 

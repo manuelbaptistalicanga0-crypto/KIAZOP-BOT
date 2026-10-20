@@ -7,7 +7,13 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   if (!isCronAuthorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  const events = await getPrisma().webhookEvent.findMany({
+  const prisma = getPrisma();
+  // Recupera leases de funções serverless que foram terminadas no meio do trabalho.
+  await prisma.webhookEvent.updateMany({
+    where: { status: "PROCESSING", processingAt: { lt: new Date(Date.now() - 2 * 60_000) } },
+    data: { status: "PENDING", processingAt: null, lastError: "Lease de processamento expirou; evento reencaminhado." },
+  });
+  const events = await prisma.webhookEvent.findMany({
     where: { status: { in: ["PENDING", "FAILED"] }, attempts: { lt: 5 } },
     select: { id: true },
     orderBy: { createdAt: "asc" },
