@@ -1,6 +1,6 @@
 # FASE 1 — CONCLUSÃO E VALIDAÇÃO ✅
 
-> **Documento histórico / plano, não estado atual do código.** A implementação deste repositório é a demo descrita no [README](README.md); as funcionalidades detalhadas abaixo não existem neste checkout.
+> **Documento histórico / plano, não estado atual do código.** A implementação actual é o MVP ExecutaPro descrito no [README](README.md); este documento regista planos e afirmações de uma fase anterior.
 
 ## Status histórico: COMPLETO E VALIDADO
 

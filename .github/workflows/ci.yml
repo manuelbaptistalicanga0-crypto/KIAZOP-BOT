@@ -12,7 +12,27 @@ jobs:
   quality:
     name: Check and test (Node.js 22)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: executapro
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d executapro"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Prisma generate precisa de uma URL sintacticamente válida; os testes não ligam à base de dados.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/executapro
+      DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/executapro
+      NEXTAUTH_SECRET: ci-only-secret-not-for-production
+      ENCRYPTION_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -23,11 +43,15 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Apply database migrations
+        run: npm run db:migrate:deploy
       - name: Lint
         run: npm run lint
       - name: Type check
         run: npm run typecheck
       - name: Unit tests with coverage
         run: npm run test:coverage
+      - name: Dependency audit
+        run: npm audit --audit-level=moderate
       - name: Production build
         run: npm run build

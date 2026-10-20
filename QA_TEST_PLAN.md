@@ -1,6 +1,6 @@
 # 🧪 QA Test Plan — FASE 1
 
-> **Plano de QA legado, não válido para o checkout atual.** Os comandos abaixo referem-se a módulos/infraestrutura que não estão implementados. Para os controlos atuais, usa os scripts no [README](README.md) e o workflow GitHub Actions.
+> **Plano de QA legado, não válido para o checkout atual.** Os comandos abaixo referem-se a módulos/infraestrutura de uma fase anterior. Para validar o MVP actual, usa os scripts no [README](README.md) e o workflow GitHub Actions.
 
 ## Objectivo
 Validar que FASE 1 está funcional, seguro e pronto para produção.

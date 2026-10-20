@@ -1,42 +1,50 @@
-# Começar a desenvolver
+# Começar com o ExecutaPro
 
 ## Requisitos
 
-- Node.js 20+ e npm
-- Git (para clonar o repositório)
+- Node.js 22 ou superior
+- PostgreSQL 16+ (o Supabase funciona)
+- npm
 
-Não precisas de Docker, PostgreSQL, Redis nem credenciais externas para executar a demonstração atual.
+## Primeira execução
 
-## Instalação e execução
+1. Cria um projecto PostgreSQL e copia as URLs pooled/direct do Supabase.
+2. Copia `.env.example` para `.env`, preenche `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `ENCRYPTION_KEY`, `META_APP_SECRET` e `CRON_SECRET`. Gera segredos localmente com `openssl rand -base64 32`.
+3. Instala, migra e inicia:
 
 ```bash
-git clone https://github.com/manuelbaptistalicanga0-crypto/KIAZOP-BOT.git
-cd KIAZOP-BOT
 npm ci
+npm run db:migrate:deploy
 npm run dev
 ```
 
-Visita [http://localhost:3000](http://localhost:3000). A página inclui um payload WhatsApp de exemplo; carrega em **Executar teste** para chamar a API e ver as mensagens normalizadas. Podes editar o payload para experimentar outras formas. `/api/health` dá uma resposta simples de saúde do serviço.
+Abre [http://localhost:3000/register](http://localhost:3000/register) e cria a empresa. Adiciona a equipa em **Equipa**, atribui tarefas e configura o WhatsApp em **WhatsApp**. Para usar a API Meta, regista na Meta a callback e o Verify Token apresentados no passo 2 e subscreve `messages`.
 
-## Validar alterações
+## Testes e build
 
 ```bash
 npm run lint
 npm run typecheck
-npm test
+npm run test:coverage
 npm run build
+npm audit --audit-level=moderate
 ```
 
-O GitHub Actions executa estes mesmos passos em pushes e pull requests e também permite execução manual no separador **Actions**.
+Os testes unitários isolam Prisma e Meta com mocks. O GitHub Actions corre lint, TypeScript, testes, build e auditoria em cada push/PR.
 
-## Endpoint de webhook
+## Bot e lembretes
 
-- `GET /api/webhooks/whatsapp`: responde ao desafio de verificação Meta se `META_WEBHOOK_VERIFY_TOKEN` estiver configurado e corresponder ao token recebido.
-- `POST /api/webhooks/whatsapp`: lê mensagens de um payload Meta e devolve o formato normalizado.
-- Com `META_APP_SECRET`, valida a assinatura `X-Hub-Signature-256`. Em modo de desenvolvimento a assinatura é opcional para permitir experimentação; em produção a API não aceita eventos se o segredo não estiver configurado.
+- `FEITO` / `1`: conclui a tarefa em aberto mais próxima do funcionário.
+- `ATRASO`: pede o motivo; a próxima resposta é guardada na tarefa.
+- Os lembretes usam um template previamente aprovado na Meta e são seleccionados por `/api/cron/reminders` quando vencem nos próximos cinco minutos.
+- `/api/cron/process-events` tenta novamente eventos pendentes.
 
-Define estas variáveis apenas no ambiente local/deploy. Nunca coloques segredos em commits.
+Ambos os cron endpoints exigem `Authorization: Bearer <CRON_SECRET>`. Configura um scheduler externo ou Vercel Pro; não publiques os endpoints sem o segredo.
 
-## Âmbito atual
+## Deploy Vercel
 
-O código executável deste repositório está limitado à demo da interface, health check e webhook WhatsApp. Os documentos anteriores descrevem ideias e funcionalidades planeadas; não assumas que base de dados, RLS, Redis, Instagram, IA, agendamento ou painel administrativo já estejam implementados.
+Segue os três passos do [README](README.md#deploy-na-vercel-em-3-passos). A Vercel precisa de `DATABASE_URL` e `DIRECT_URL` durante o `postinstall`/build para o Prisma gerar o client. Aplica as migrations com `npm run db:migrate:deploy` antes de abrir a aplicação.
+
+## Atenção
+
+O isolamento por tenant está aplicado em sessão e queries, com FK composta para tarefas. Esta versão não configura políticas RLS PostgreSQL, verificação de email ou rate-limit distribuído no registo. Confere as notas de segurança no README antes de abrir o serviço ao público.

@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  AWAITING_DELAY_REASON
+  DELAYED
+  COMPLETED
+}
+
+enum WebhookEventStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  SENT
+  FAILED
+}
+
+model Tenant {
+  id             String           @id @default(cuid())
+  name           String
+  plan           Plan             @default(FREE)
+  createdAt      DateTime         @default(now())
+  users          User[]
+  employees      Employee[]
+  tasks          Task[]
+  whatsappConfig WhatsAppConfig?
+  webhookEvents  WebhookEvent[]
+  messages       MessageLog[]
+
+  @@index([plan, createdAt])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+}
+
+model Employee {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@unique([id, tenantId])
+  @@unique([tenantId, phone])
+  @@index([tenantId, name])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  tenantId    String
+  employeeId  String
+  title       String
+  description String?
+  dueAt       DateTime
+  status      TaskStatus @default(PENDING)
+  delayReason String?
+  completedAt DateTime?
+  reminderSentAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee    Employee   @relation(fields: [employeeId, tenantId], references: [id, tenantId], onDelete: Cascade)
+
+  @@index([tenantId, dueAt, status])
+  @@index([tenantId, status, dueAt])
+  @@index([tenantId, employeeId, status, dueAt])
+  @@index([tenantId, reminderSentAt, dueAt])
+}
+
+model WhatsAppConfig {
+  id                    String   @id @default(cuid())
+  tenantId              String   @unique
+  phoneNumberId         String   @unique
+  wabaId                String
+  encryptedAccessToken  String   @db.Text
+  verifyTokenHash       String
+  enabled               Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([verifyTokenHash])
+}
+
+model WebhookEvent {
+  id              String             @id @default(cuid())
+  tenantId        String
+  providerEventId String
+  payload         Json
+  status          WebhookEventStatus @default(PENDING)
+  attempts        Int                @default(0)
+  lastError       String?            @db.Text
+  createdAt       DateTime           @default(now())
+  processedAt     DateTime?
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, providerEventId])
+  @@index([tenantId, status, createdAt])
+}
+
+model MessageLog {
+  id        String           @id @default(cuid())
+  tenantId  String
+  direction MessageDirection
+  status    MessageStatus
+  to        String
+  kind      String
+  createdAt DateTime         @default(now())
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt, status])
+}

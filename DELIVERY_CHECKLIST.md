@@ -1,6 +1,6 @@
 # 📦 DELIVERY CHECKLIST — FASE 1
 
-> **Arquivo histórico, não é uma declaração do estado atual.** O código disponível hoje é a demo mínima descrita no [README](README.md). PostgreSQL, RLS, Redis, IA, painel e as demais funcionalidades listadas abaixo não estão implementadas neste checkout.
+> **Arquivo histórico, não é uma declaração do estado atual.** O código disponível hoje é o MVP ExecutaPro descrito no [README](README.md). Este checklist foi escrito para um estado anterior e as funcionalidades abaixo não devem ser tomadas como estado actual.
 
 ## Status histórico: ✅ PRONTO PARA PRODUÇÃO
 
